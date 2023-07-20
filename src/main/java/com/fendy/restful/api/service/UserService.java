@@ -20,15 +20,15 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ValidationService validationService;
+
     private Validator validator;
 
     public void register(RegisterUserRequest registerUserRequest) {
 
         // validation request
-        Set<ConstraintViolation<RegisterUserRequest>> constraintViolations = validator.validate(registerUserRequest);
-        if (constraintViolations.size() != 0) {
-            throw new ConstraintViolationException(constraintViolations);
-        }
+        validationService.validate(registerUserRequest);
 
         // check if username existed
         if (userRepository.existsById(registerUserRequest.getUsername())) {
