@@ -30,4 +30,7 @@ public class Contact {
     @JoinColumn(name = "username", referencedColumnName = "username")
     private User user;
 
+    @OneToMany(mappedBy = "contact")
+    private List<Address> addresses;
+
 }
