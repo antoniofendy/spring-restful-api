@@ -58,7 +58,7 @@ class UserControllerTest {
                 status().isOk()
         ).andDo(result -> {
             // convert back the json response to WebResponse format
-            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
             });
 
             assertEquals("OK", response.getData());
@@ -81,7 +81,7 @@ class UserControllerTest {
         ).andExpectAll(
                 status().isBadRequest()
         ).andDo(result -> {
-            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
             });
 
             assertNotNull(response.getErrors());
@@ -100,7 +100,7 @@ class UserControllerTest {
 
         RegisterUserRequest request = new RegisterUserRequest();
         request.setUsername("test_fendy");
-        request.setPassword("test_password");
+        request.setPassword(BCrypt.hashpw("test_password", BCrypt.gensalt()));
         request.setName("test_fendy");
 
         mockMvc.perform(
@@ -111,7 +111,7 @@ class UserControllerTest {
         ).andExpectAll(
                 status().isBadRequest()
         ).andDo(result -> {
-            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<String>>() {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
             });
 
             assertNotNull(response.getErrors());
