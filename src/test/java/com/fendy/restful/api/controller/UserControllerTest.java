@@ -1,7 +1,9 @@
 package com.fendy.restful.api.controller;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fendy.restful.api.entity.User;
 import com.fendy.restful.api.model.RegisterUserRequest;
@@ -54,14 +56,13 @@ class UserControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-        ).andExpectAll(
+        ).andExpect(
                 status().isOk()
         ).andDo(result -> {
-            // convert back the json response to WebResponse format
-            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
-            });
+            String responseBody = result.getResponse().getContentAsString();
+            JsonNode responseJson = objectMapper.readTree(responseBody);
 
-            assertEquals("OK", response.getData());
+            assertEquals("OK", responseJson.get("data").asText());
         });
     }
 
@@ -78,13 +79,13 @@ class UserControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-        ).andExpectAll(
+        ).andExpect(
                 status().isBadRequest()
         ).andDo(result -> {
-            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
-            });
+            String responseBody = result.getResponse().getContentAsString();
+            JsonNode responseJson = objectMapper.readTree(responseBody);
 
-            assertNotNull(response.getErrors());
+            assertNotNull(responseJson.get("errors"));
         });
     }
 
@@ -108,13 +109,13 @@ class UserControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
-        ).andExpectAll(
+        ).andExpect(
                 status().isBadRequest()
         ).andDo(result -> {
-            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
-            });
+            String responseBody = result.getResponse().getContentAsString();
+            JsonNode responseJson = objectMapper.readTree(responseBody);
 
-            assertNotNull(response.getErrors());
+            assertNotNull(responseJson.get("errors"));
         });
     }
 

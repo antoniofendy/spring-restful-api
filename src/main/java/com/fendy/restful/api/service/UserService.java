@@ -24,9 +24,6 @@ public class UserService {
     @Autowired
     private ValidationService validationService;
 
-    @Autowired
-    private Validator validator;
-
     public void register(RegisterUserRequest registerUserRequest) {
 
         // validation request
