@@ -7,6 +7,7 @@ import com.fendy.restful.api.security.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.ConstraintViolation;
@@ -23,6 +24,7 @@ public class UserService {
     @Autowired
     private ValidationService validationService;
 
+    @Autowired
     private Validator validator;
 
     public void register(RegisterUserRequest registerUserRequest) {

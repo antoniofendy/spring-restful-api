@@ -100,7 +100,7 @@ class UserControllerTest {
 
         RegisterUserRequest request = new RegisterUserRequest();
         request.setUsername("test_fendy");
-        request.setPassword(BCrypt.hashpw("test_password", BCrypt.gensalt()));
+        request.setPassword("test_password");
         request.setName("test_fendy");
 
         mockMvc.perform(
