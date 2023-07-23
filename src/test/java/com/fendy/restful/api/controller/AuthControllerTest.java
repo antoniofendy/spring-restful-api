@@ -2,6 +2,7 @@ package com.fendy.restful.api.controller;
 
 import antlr.Token;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fendy.restful.api.entity.User;
 import com.fendy.restful.api.model.LoginUserRequest;
@@ -61,13 +62,20 @@ class AuthControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginUserRequest))
-        ).andExpectAll(
+        ).andExpect(
                 status().isOk()
         ).andDo(result -> {
-            WebResponse<TokenResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<WebResponse<TokenResponse>>() {
-            });
+            String responseBody = result.getResponse().getContentAsString();
+            JsonNode responseJson = objectMapper.readTree(responseBody);
 
-            assertNull(response.getErrors());
+            assertTrue(responseJson.get("errors").isNull());
+            assertFalse(responseJson.get("data").get("token").isNull());
+            assertFalse(responseJson.get("data").get("expiredAt").isNull());
+
+            User userDb = userRepository.findById("test_fendy").orElse(null);
+            assertNotNull(userDb);
+            assertEquals(responseJson.get("data").get("token").asText(), userDb.getToken());
+            assertEquals(responseJson.get("data").get("expiredAt").asLong(), userDb.getTokenExpiredAt());
         });
     }
 
@@ -83,13 +91,13 @@ class AuthControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginUserRequest))
-        ).andExpectAll(
+        ).andExpect(
                 status().isUnauthorized()
         ).andDo(result -> {
-            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
-            });
+            String responeBody = result.getResponse().getContentAsString();
+            JsonNode jsonNode = objectMapper.readTree(responeBody);
 
-            assertNotNull(response.getErrors());
+            assertFalse(jsonNode.get("errors").isNull());
         });
     }
 
@@ -112,13 +120,13 @@ class AuthControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginUserRequest))
-        ).andExpectAll(
+        ).andExpect(
                 status().isUnauthorized()
         ).andDo(result -> {
-            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
-            });
+            String responseBody = result.getResponse().getContentAsString();
+            JsonNode jsonNode = objectMapper.readTree(responseBody);
 
-            assertNotNull(response.getErrors());
+            assertFalse(jsonNode.get("errors").isNull());
         });
     }
 
