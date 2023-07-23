@@ -44,89 +44,81 @@ class AuthControllerTest {
     }
 
     @Test
-    void testLoginSuccess() throws Exception{
-
-        User user = new User();
-        user.setUsername("test_fendy");
-        user.setPassword(BCrypt.hashpw("test_password", BCrypt.gensalt()));
-        user.setName("test_fendy");
-
-        userRepository.save(user);
-
-        LoginUserRequest loginUserRequest = new LoginUserRequest();
-        loginUserRequest.setUsername("test_fendy");
-        loginUserRequest.setPassword("test_password");
+    void loginFailedUserNotFound() throws Exception {
+        LoginUserRequest request = new LoginUserRequest();
+        request.setUsername("test");
+        request.setPassword("test");
 
         mockMvc.perform(
                 post("/api/auth/login")
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginUserRequest))
-        ).andExpect(
+                        .content(objectMapper.writeValueAsString(request))
+        ).andExpectAll(
+                status().isUnauthorized()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNotNull(response.getErrors());
+        });
+    }
+
+    @Test
+    void loginFailedWrongPassword() throws Exception {
+        User user = new User();
+        user.setName("Test");
+        user.setUsername("test");
+        user.setPassword(BCrypt.hashpw("test", BCrypt.gensalt()));
+        userRepository.save(user);
+
+        LoginUserRequest request = new LoginUserRequest();
+        request.setUsername("test");
+        request.setPassword("salah");
+
+        mockMvc.perform(
+                post("/api/auth/login")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+        ).andExpectAll(
+                status().isUnauthorized()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNotNull(response.getErrors());
+        });
+    }
+
+    @Test
+    void loginSuccess() throws Exception {
+        User user = new User();
+        user.setName("Test");
+        user.setUsername("test");
+        user.setPassword(BCrypt.hashpw("test", BCrypt.gensalt()));
+        userRepository.save(user);
+
+        LoginUserRequest request = new LoginUserRequest();
+        request.setUsername("test");
+        request.setPassword("test");
+
+        mockMvc.perform(
+                post("/api/auth/login")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+        ).andExpectAll(
                 status().isOk()
         ).andDo(result -> {
-            String responseBody = result.getResponse().getContentAsString();
-            JsonNode responseJson = objectMapper.readTree(responseBody);
+            WebResponse<TokenResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+            assertNull(response.getErrors());
+            assertNotNull(response.getData().getToken());
+            assertNotNull(response.getData().getExpiredAt());
 
-            assertTrue(responseJson.get("errors").isNull());
-            assertFalse(responseJson.get("data").get("token").isNull());
-            assertFalse(responseJson.get("data").get("expiredAt").isNull());
-
-            User userDb = userRepository.findById("test_fendy").orElse(null);
+            User userDb = userRepository.findById("test").orElse(null);
             assertNotNull(userDb);
-            assertEquals(responseJson.get("data").get("token").asText(), userDb.getToken());
-            assertEquals(responseJson.get("data").get("expiredAt").asLong(), userDb.getTokenExpiredAt());
-        });
-    }
-
-    @Test
-    void testLoginFailedUserNotFound() throws Exception{
-
-        LoginUserRequest loginUserRequest = new LoginUserRequest();
-        loginUserRequest.setUsername("test_fendy");
-        loginUserRequest.setPassword("test_password");
-
-        mockMvc.perform(
-                post("/api/auth/login")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginUserRequest))
-        ).andExpect(
-                status().isUnauthorized()
-        ).andDo(result -> {
-            String responeBody = result.getResponse().getContentAsString();
-            JsonNode jsonNode = objectMapper.readTree(responeBody);
-
-            assertFalse(jsonNode.get("errors").isNull());
-        });
-    }
-
-    @Test
-    void testLoginFailedWrongPassword() throws Exception{
-
-        User user = new User();
-        user.setUsername("test_fendy");
-        user.setPassword(BCrypt.hashpw("test_password", BCrypt.gensalt()));
-        user.setName("test_fendy");
-
-        userRepository.save(user);
-
-        LoginUserRequest loginUserRequest = new LoginUserRequest();
-        loginUserRequest.setUsername("test_fendy");
-        loginUserRequest.setPassword("test123_password");
-
-        mockMvc.perform(
-                post("/api/auth/login")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginUserRequest))
-        ).andExpect(
-                status().isUnauthorized()
-        ).andDo(result -> {
-            String responseBody = result.getResponse().getContentAsString();
-            JsonNode jsonNode = objectMapper.readTree(responseBody);
-
-            assertFalse(jsonNode.get("errors").isNull());
+            assertEquals(userDb.getToken(), response.getData().getToken());
+            assertEquals(userDb.getTokenExpiredAt(), response.getData().getExpiredAt());
         });
     }
 
