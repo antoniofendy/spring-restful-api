@@ -2,6 +2,7 @@ package com.fendy.restful.api.service;
 
 import com.fendy.restful.api.entity.User;
 import com.fendy.restful.api.model.RegisterUserRequest;
+import com.fendy.restful.api.model.UserResponse;
 import com.fendy.restful.api.repository.UserRepository;
 import com.fendy.restful.api.security.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,13 @@ public class UserService {
 
         userRepository.save(user);
 
+    }
+
+    public UserResponse getUser(User user) {
+        return UserResponse.builder()
+                .username(user.getUsername())
+                .name(user.getName())
+                .build();
     }
 
 }
